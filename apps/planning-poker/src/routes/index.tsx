@@ -1,4 +1,4 @@
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -9,7 +9,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useCreateRoom } from '../api/room';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -21,15 +22,36 @@ function RouteComponent() {
 
   const theme = useTheme();
   const styles = useStyles(theme);
+  const navigate = useNavigate();
+
+  const {
+    data: createRoomResponse,
+    isSuccess: isCreateRoomSuccess,
+    isError: isCreateRoomError,
+    error: createRoomError,
+    mutate: createRoom,
+  } = useCreateRoom();
+
+  useEffect(() => {
+    if (isCreateRoomSuccess) {
+      navigate({ to: `/rooms/${createRoomResponse.id}` });
+    }
+  }, [isCreateRoomSuccess]);
+
+  useEffect(() => {
+    if (isCreateRoomError) {
+      alert(`An error occured ${createRoomError.message}`);
+    }
+  }, [isCreateRoomError]);
 
   const handleCreateRoom: FormEventHandler = (event) => {
     event.preventDefault();
-    alert(`Hello, ${name}!`);
+    createRoom({ admin: name });
   };
 
   const handleJoinRoom: FormEventHandler = (event) => {
     event.preventDefault();
-    alert(`Join room ${roomId}!`);
+    navigate({ to: `/rooms/${roomId}` });
   };
 
   return (
